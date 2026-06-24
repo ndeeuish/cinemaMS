@@ -96,7 +96,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register MediatR & Behaviors
 builder.Services.AddMediatR(cfg => 
@@ -141,6 +141,10 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+// Register Cloudinary Service
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(CloudinarySettings.SectionName));
+builder.Services.AddScoped<IImageService, CloudinaryService>();
 
 builder.Services.AddHostedService<ExpiredBookingCleanupService>();
 
