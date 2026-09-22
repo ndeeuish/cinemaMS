@@ -1,5 +1,5 @@
 import api from './api';
-import { CinemaDto, MovieDto, RoomDto, ShowtimeDto, UserDto, FilterBase, PagedResult, BookingAdminDto } from '../types/admin.type';
+import { CinemaDto, MovieDto, RoomDto, ShowtimeDto, UserDto, FilterBase, PagedResult, BookingAdminDto, ArticleDto } from '../types/admin.type';
 
 export const adminService = {
   // Cinemas
@@ -109,6 +109,22 @@ export const adminService = {
   getBookings: async (params?: FilterBase): Promise<PagedResult<BookingAdminDto>> => {
     const response = await api.get<PagedResult<BookingAdminDto>>('/Bookings/Get-all-bookings', { params });
     return response.data;
+  },
+
+  // Articles
+  getArticles: async (params?: FilterBase): Promise<PagedResult<ArticleDto>> => {
+    const response = await api.get<PagedResult<ArticleDto>>('/Articles/Pagging-article', { params });
+    return response.data;
+  },
+  createArticle: async (data: Partial<ArticleDto>): Promise<number> => {
+    const response = await api.post('/Articles/Create-article', data);
+    return response.data;
+  },
+  updateArticle: async (id: number, data: Partial<ArticleDto>): Promise<void> => {
+    await api.put(`/Articles/Update-article/${id}`, data);
+  },
+  deleteArticle: async (id: number): Promise<void> => {
+    await api.delete(`/Articles/Delete-article/${id}`);
   },
 
   // Uploads

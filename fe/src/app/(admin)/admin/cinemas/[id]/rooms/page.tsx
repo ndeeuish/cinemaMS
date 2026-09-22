@@ -112,7 +112,7 @@ export default function AdminRoomsPage({ params }: { params: Promise<{ id: strin
       setIsModalVisible(false);
       fetchRooms();
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Có lỗi xảy ra');
+      message.error(getErrorMessage(error, 'Có lỗi xảy ra'));
     }
   };
 
@@ -122,7 +122,7 @@ export default function AdminRoomsPage({ params }: { params: Promise<{ id: strin
       message.success('Xóa phòng chiếu thành công');
       fetchRooms();
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Không thể xóa phòng chiếu này');
+      message.error(getErrorMessage(error, 'Không thể xóa phòng chiếu này'));
     }
   };
 
@@ -235,7 +235,7 @@ export default function AdminRoomsPage({ params }: { params: Promise<{ id: strin
       message.success('Khởi tạo sơ đồ ghế thành công');
       setIsBulkModalVisible(false);
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Lỗi khi tạo sơ đồ ghế');
+      message.error(getErrorMessage(error, 'Lỗi khi tạo sơ đồ ghế'));
     }
   };
 

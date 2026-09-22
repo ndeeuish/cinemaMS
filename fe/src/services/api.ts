@@ -33,11 +33,9 @@ api.interceptors.response.use(
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
-      } else {
-        // Show toast notification for 400, 500, etc.
-        const errorMsg = error.response.data?.message || 'Có lỗi xảy ra từ máy chủ!';
+      } else if (error.response.status >= 500) {
         if (typeof window !== 'undefined') {
-          message.error(errorMsg);
+          message.error('Lỗi hệ thống từ máy chủ (500)!');
         }
       }
     } else {

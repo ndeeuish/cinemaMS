@@ -93,7 +93,7 @@ export default function AdminUsersPage() {
       setIsModalVisible(false);
       fetchUsers();
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Có lỗi xảy ra');
+      message.error(getErrorMessage(error, 'Có lỗi xảy ra'));
     }
   };
 
@@ -103,7 +103,7 @@ export default function AdminUsersPage() {
       message.success('Xóa người dùng thành công');
       fetchUsers();
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Không thể xóa người dùng này');
+      message.error(getErrorMessage(error, 'Không thể xóa người dùng này'));
     }
   };
 
