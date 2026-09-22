@@ -1,26 +1,81 @@
+using CinemaMS.Application.DTOs;
+using CinemaMS.Application.Interfaces.Services;
 using CinemaMS.Application.Features.Payments.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CinemaMS.Domain.Repositories;
 
 namespace CinemaMS.API.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[ApiController]
 public class PaymentsController : ControllerBase
 {
+    private readonly IVnPayService _vnPayService;
     private readonly IMediator _mediator;
+    private readonly IBookingRepository _bookingRepository;
 
-    public PaymentsController(IMediator mediator)
+    public PaymentsController(IVnPayService vnPayService, IMediator mediator, IBookingRepository bookingRepository)
     {
+        _vnPayService = vnPayService;
         _mediator = mediator;
+        _bookingRepository = bookingRepository;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> ProcessPayment([FromBody] ProcessPaymentCommand command)
+    [HttpPost("create-url")]
+    [Authorize]
+    public async Task<IActionResult> CreatePaymentUrl([FromBody] int bookingId)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        var booking = await _bookingRepository.GetByIdAsync(bookingId, CancellationToken.None);
+        if (booking == null) return NotFound("Booking not found");
+
+        if (booking.Status != "Holding")
+            return BadRequest(new { message = "Booking is not in Holding status or already paid." });
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+
+        var model = new PaymentInformationModel
+        {
+            BookingId = bookingId,
+            Amount = booking.TotalAmount,
+            Name = "Thanh toan VNPAY",
+            OrderDescription = $"Thanh toan ve xem phim ma {bookingId}"
+        };
+
+        var url = _vnPayService.CreatePaymentUrl(model, ipAddress);
+
+        return Ok(new { url });
+    }
+
+    [HttpGet("vnpay-return")]
+    public async Task<IActionResult> PaymentCallback()
+    {
+        var response = _vnPayService.PaymentExecute(Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString()));
+
+        // In production, get Frontend URL from config
+        string frontendUrl = "http://localhost:3000/checkout/result";
+        
+        if (response.Success)
+        {
+            try
+            {
+                var command = new ProcessPaymentCommand 
+                { 
+                    BookingId = response.BookingId, 
+                    PaymentMethod = "VnPay", 
+                    TransactionCode = response.TransactionId 
+                };
+                await _mediator.Send(command);
+                
+                return Redirect($"{frontendUrl}?status=success&bookingId={response.BookingId}&txnId={response.TransactionId}");
+            }
+            catch (Exception ex)
+            {
+                return Redirect($"{frontendUrl}?status=failed&message={Uri.EscapeDataString(ex.Message)}");
+            }
+        }
+
+        return Redirect($"{frontendUrl}?status=failed&message={Uri.EscapeDataString("Giao dịch bị huỷ hoặc thất bại từ VNPAY.")}");
     }
 }

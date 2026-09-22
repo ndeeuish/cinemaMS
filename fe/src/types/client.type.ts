@@ -55,3 +55,28 @@ export interface BookingResponseDto {
   showtimeStart: string;
   tickets: TicketDto[];
 }
+
+export enum ArticleType {
+  News = 0,
+  Event = 1
+}
+
+export interface ArticleDto {
+  id: number;
+  title: string;
+  summary: string;
+  content: string;
+  imageUrl: string;
+  type: ArticleType;
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalItems: number;
+  pageIndex: number;
+  pageSize: number;
+}

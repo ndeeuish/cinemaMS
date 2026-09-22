@@ -53,17 +53,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
   const handlePayment = async () => {
     setLoading(true);
     try {
-      await clientService.confirmPayment(bookingId);
-      
-      setIsPaid(true);
-      message.success('Thanh toán thành công!');
-      clearBooking();
+      const res = await clientService.createPaymentUrl(bookingId);
+      window.location.href = res.url;
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'Thanh toán thất bại!';
+      const errorMsg = error.response?.data?.message || 'Không thể tạo phiên thanh toán!';
       message.error(errorMsg);
-      // Re-fetch booking to see if it was canceled
-      fetchBooking();
-    } finally {
       setLoading(false);
     }
   };
