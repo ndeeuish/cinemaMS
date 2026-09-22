@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, Button, Spin, Carousel, Row, Col, Typography } from 'antd';
 import { clientService } from '@/services/client.service';
-import { MovieDto } from '@/types/client.type';
+import { MovieDto, ArticleDto } from '@/types/client.type';
 import Link from 'next/link';
 import { ClockCircleOutlined, CalendarOutlined, RightOutlined, LeftOutlined, LeftCircleOutlined, RightCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -25,18 +25,14 @@ const comingSoonMovies = [
   { id: 205, title: 'Twisters', posterUrl: 'https://placehold.co/300x450/888/FFF.png?text=Coming+Soon+5', durationInMinutes: 117, releaseDate: '2026-07-19', ageRestrictionName: 'C13' },
 ];
 
-const eventsAndNews = [
-  { id: 1, title: 'Bùng Nổ Tiệc Sinh Nhật Điện Ảnh - Tặng Bắp Nước', image: 'https://placehold.co/400x250/222/FFF?text=Event+1', date: '01/06/2026' },
-  { id: 2, title: 'Khai Trương Rạp Phim IMAX Mới Tại Quận 1', image: 'https://placehold.co/400x250/333/FFF?text=Event+2', date: '25/05/2026' },
-  { id: 3, title: 'Thành viên VIP: Trải nghiệm phòng chờ Thương gia', image: 'https://placehold.co/400x250/444/FFF?text=Event+3', date: '15/05/2026' },
-];
-
 export default function HomePage() {
   const [movies, setMovies] = useState<MovieDto[]>([]);
+  const [articles, setArticles] = useState<ArticleDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchMovies();
+    fetchArticles();
   }, []);
 
   const fetchMovies = async () => {
@@ -47,6 +43,15 @@ export default function HomePage() {
       console.error('Failed to fetch movies:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchArticles = async () => {
+    try {
+      const data = await clientService.getArticles(1, 3);
+      setArticles(data.items);
+    } catch (error) {
+      console.error('Failed to fetch articles:', error);
     }
   };
 
@@ -227,23 +232,29 @@ export default function HomePage() {
           </div>
           
           <Row gutter={[24, 24]}>
-            {eventsAndNews.map(item => (
+            {articles.map(item => (
               <Col xs={24} md={8} key={item.id}>
-                <Card 
-                  hoverable 
-                  className="h-full overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow rounded-xl bg-white"
-                  cover={
-                    <div className="overflow-hidden">
-                      <img alt={item.title} src={item.image} className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105" />
-                    </div>
-                  }
-                  styles={{ body: { padding: '20px' } }}
-                >
-                  <p className="text-xs text-gray-400 mb-2 font-medium">{item.date}</p>
-                  <h3 className="text-lg font-bold text-gray-900 leading-tight hover:text-red-600 transition-colors line-clamp-2">
-                    {item.title}
-                  </h3>
-                </Card>
+                <Link href={`/articles/${item.id}`}>
+                  <Card 
+                    hoverable 
+                    className="h-full overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow rounded-xl bg-white"
+                    cover={
+                      <div className="overflow-hidden">
+                        <img 
+                          alt={item.title} 
+                          src={item.imageUrl ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://localhost:7212'}${item.imageUrl}`) : 'https://placehold.co/400x250/EAEAEA/000000.png?text=No+Image'} 
+                          className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105" 
+                        />
+                      </div>
+                    }
+                    styles={{ body: { padding: '20px' } }}
+                  >
+                    <p className="text-xs text-gray-400 mb-2 font-medium">{dayjs(item.createdAt).format('DD/MM/YYYY')}</p>
+                    <h3 className="text-lg font-bold text-gray-900 leading-tight hover:text-red-600 transition-colors line-clamp-2">
+                      {item.title}
+                    </h3>
+                  </Card>
+                </Link>
               </Col>
             ))}
           </Row>

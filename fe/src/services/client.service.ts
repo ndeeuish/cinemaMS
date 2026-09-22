@@ -1,5 +1,5 @@
 import api from './api';
-import { MovieDto, ShowtimeDto, SeatDto, BookingResponseDto } from '../types/client.type';
+import { MovieDto, ShowtimeDto, SeatDto, BookingResponseDto, ArticleDto, PagedResult } from '../types/client.type';
 
 export const clientService = {
   getMovies: async (): Promise<MovieDto[]> => {
@@ -45,8 +45,22 @@ export const clientService = {
     return booking;
   },
 
-  confirmPayment: async (bookingId: number): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post<{ success: boolean; message: string }>(`/Bookings/${bookingId}/confirm-payment`);
+  createPaymentUrl: async (bookingId: number): Promise<{ url: string }> => {
+    const response = await api.post<{ url: string }>('/Payments/create-url', bookingId);
+    return response.data;
+  },
+
+  getArticles: async (pageIndex = 1, pageSize = 6, type?: number, isActive: boolean = true): Promise<PagedResult<ArticleDto>> => {
+    let url = `/Articles/Pagging-article?PageIndex=${pageIndex}&PageSize=${pageSize}&IsActive=${isActive}`;
+    if (type !== undefined) {
+      url += `&Type=${type}`;
+    }
+    const response = await api.get<PagedResult<ArticleDto>>(url);
+    return response.data;
+  },
+
+  getArticleById: async (id: number | string): Promise<ArticleDto> => {
+    const response = await api.get<ArticleDto>(`/Articles/Get-article/${id}`);
     return response.data;
   },
 };

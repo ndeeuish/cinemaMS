@@ -1,6 +1,7 @@
 using CinemaMS.API.Middlewares;
 using CinemaMS.Application.Behaviors;
 using CinemaMS.Infrastructure.Data;
+using CinemaMS.Infrastructure.Services.VnPay;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -96,7 +97,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register MediatR & Behaviors
 builder.Services.AddMediatR(cfg => 
@@ -121,6 +122,7 @@ builder.Services.AddScoped<CinemaMS.Domain.Repositories.IRoleRepository, CinemaM
 builder.Services.AddScoped<CinemaMS.Domain.Repositories.IRoomRepository, CinemaMS.Infrastructure.Repositories.RoomRepository>();
 builder.Services.AddScoped<CinemaMS.Domain.Repositories.ISeatRepository, CinemaMS.Infrastructure.Repositories.SeatRepository>();
 builder.Services.AddScoped<CinemaMS.Domain.Repositories.IMovieRepository, CinemaMS.Infrastructure.Repositories.MovieRepository>();
+builder.Services.AddScoped<CinemaMS.Domain.Repositories.IArticleRepository, CinemaMS.Infrastructure.Repositories.ArticleRepository>();
 builder.Services.AddScoped<CinemaMS.Domain.Repositories.IShowtimeRepository, CinemaMS.Infrastructure.Repositories.ShowtimeRepository>();
 builder.Services.AddScoped<CinemaMS.Domain.Repositories.IBookingRepository, CinemaMS.Infrastructure.Repositories.BookingRepository>();
 builder.Services.AddScoped<CinemaMS.Domain.Repositories.IPaymentRepository, CinemaMS.Infrastructure.Repositories.PaymentRepository>();
@@ -141,6 +143,14 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+// Register Cloudinary Service
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(CloudinarySettings.SectionName));
+builder.Services.AddScoped<IImageService, CloudinaryService>();
+
+// Register VNPAY Service
+builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection(VnPaySettings.SectionName));
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 builder.Services.AddHostedService<ExpiredBookingCleanupService>();
 

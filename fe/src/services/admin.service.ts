@@ -109,5 +109,24 @@ export const adminService = {
   getBookings: async (params?: FilterBase): Promise<PagedResult<BookingAdminDto>> => {
     const response = await api.get<PagedResult<BookingAdminDto>>('/Bookings/Get-all-bookings', { params });
     return response.data;
+  },
+
+  // Uploads
+  uploadImage: async (file: File, folder: string, tag?: string): Promise<{ url: string, publicId: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    if (tag) {
+      formData.append('tag', tag);
+    }
+    const response = await api.post<{ url: string, publicId: string }>('/Uploads/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+  deleteImage: async (publicId: string): Promise<void> => {
+    await api.delete(`/Uploads/image?publicId=${encodeURIComponent(publicId)}`);
   }
 };

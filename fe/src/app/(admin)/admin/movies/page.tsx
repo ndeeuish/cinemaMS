@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, DatePicker, Space, Popconfirm, message, Select, Tag, Row, Col, Typography } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, InputNumber, DatePicker, Space, Popconfirm, message, Select, Tag, Row, Col, Typography, Upload } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, LoadingOutlined } from '@ant-design/icons';
 import { adminService } from '@/services/admin.service';
 import { MovieDto, AgeRestrictionDto, GenreDto } from '@/types/admin.type';
 import dayjs from 'dayjs';
@@ -18,6 +18,18 @@ const getAgeRestrictionColor = (code: string) => {
   return 'default';
 };
 
+const extractPublicId = (url: string) => {
+  try {
+    const parts = url.split('/');
+    const uploadIndex = parts.findIndex(p => p === 'upload');
+    if (uploadIndex !== -1 && parts.length > uploadIndex + 2) {
+      const pathWithExtension = parts.slice(uploadIndex + 2).join('/');
+      return pathWithExtension.split('.')[0];
+    }
+  } catch (e) {}
+  return null;
+};
+
 export default function AdminMoviesPage() {
   const [movies, setMovies] = useState<MovieDto[]>([]);
 
@@ -29,6 +41,9 @@ export default function AdminMoviesPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingMovie, setEditingMovie] = useState<MovieDto | null>(null);
   const [form] = Form.useForm();
+
+  const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [posterPreview, setPosterPreview] = useState<string>('');
 
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
   const [detailsMovie, setDetailsMovie] = useState<MovieDto | null>(null);
@@ -100,8 +115,10 @@ export default function AdminMoviesPage() {
         releaseDate: movie.releaseDate ? dayjs(movie.releaseDate) : null,
         genreIds: movie.genreIds || []
       });
+      setPosterPreview(movie.posterUrl || '');
     } else {
       form.resetFields();
+      setPosterPreview('');
     }
     setIsModalVisible(true);
   };
@@ -115,6 +132,7 @@ export default function AdminMoviesPage() {
     setIsModalVisible(false);
     form.resetFields();
     setEditingMovie(null);
+    setPosterPreview('');
   };
 
   const handleFinish = async (values: any) => {
@@ -127,6 +145,14 @@ export default function AdminMoviesPage() {
       if (editingMovie) {
         await adminService.updateMovie(editingMovie.id, payload);
         message.success('Cập nhật phim thành công');
+
+        // Xóa ảnh cũ nếu poster bị thay đổi
+        if (editingMovie.posterUrl && editingMovie.posterUrl !== payload.posterUrl) {
+          const publicId = extractPublicId(editingMovie.posterUrl);
+          if (publicId) {
+            adminService.deleteImage(publicId).catch(() => console.log('Failed to delete old poster'));
+          }
+        }
       } else {
         await adminService.createMovie(payload);
         message.success('Thêm phim thành công');
@@ -140,6 +166,8 @@ export default function AdminMoviesPage() {
 
   const handleDelete = async (id: number) => {
     try {
+      // Note: Ideally we should delete the poster from Cloudinary here too
+      // But we need the movie's posterUrl first. Assuming we just do soft delete or let backend handle it.
       await adminService.deleteMovie(id);
       message.success('Xóa phim thành công');
       fetchMovies();
@@ -147,6 +175,30 @@ export default function AdminMoviesPage() {
       message.error('Không thể xóa phim này');
     }
   };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const customUpload = async (options: any) => {
+    const { file, onSuccess, onError } = options;
+    try {
+      setUploadingPoster(true);
+      const res = await adminService.uploadImage(file as File, 'CinemaMS/Movies/Posters');
+      setPosterPreview(res.url);
+      form.setFieldsValue({ posterUrl: res.url });
+      onSuccess?.(res, new XMLHttpRequest());
+    } catch (err) {
+      message.error('Tải ảnh lên thất bại');
+      onError?.(err as Error);
+    } finally {
+      setUploadingPoster(false);
+    }
+  };
+  
+  const uploadButton = (
+    <div>
+      {uploadingPoster ? <LoadingOutlined /> : <PlusOutlined />}
+      <div style={{ marginTop: 8 }}>Tải ảnh lên</div>
+    </div>
+  );
 
   const columns = [
     { title: 'Tên phim', dataIndex: 'title', key: 'title' },
@@ -286,8 +338,17 @@ export default function AdminMoviesPage() {
             <Input.TextArea rows={2} placeholder="Danh sách diễn viên, cách nhau bằng dấu phẩy" />
           </Form.Item>
 
-          <Form.Item name="posterUrl" label="Link Poster (URL)" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="posterUrl" label="Poster Phim" rules={[{ required: true }]}>
+            <Upload
+              name="poster"
+              listType="picture-card"
+              className="avatar-uploader"
+              showUploadList={false}
+              customRequest={customUpload}
+              accept="image/*"
+            >
+              {posterPreview ? <img src={posterPreview} alt="poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : uploadButton}
+            </Upload>
           </Form.Item>
 
           <Form.Item name="trailerUrl" label="Link Trailer (URL Youtube)">
