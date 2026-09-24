@@ -37,9 +37,14 @@ export const clientService = {
     return response.data;
   },
   
+  getMyBookings: async (): Promise<BookingResponseDto[]> => {
+    const response = await api.get<BookingResponseDto[]>('/Bookings/get-my-bookings');
+    return response.data;
+  },
+
   getBookingById: async (bookingId: number): Promise<BookingResponseDto> => {
     // Fallback since BE has no getById. Get all my bookings and find the one.
-    const response = await api.get<BookingResponseDto[]>(`/Bookings/get-my-bookings`);
+    const response = await api.get<BookingResponseDto[]>('/Bookings/get-my-bookings');
     const booking = response.data.find(b => b.id === bookingId);
     if (!booking) throw new Error("Booking not found");
     return booking;

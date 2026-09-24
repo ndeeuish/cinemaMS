@@ -75,7 +75,7 @@ export default function AdminCinemasPage() {
       setIsModalVisible(false);
       fetchCinemas();
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Có lỗi xảy ra');
+      message.error(getErrorMessage(error, 'Có lỗi xảy ra'));
     }
   };
 

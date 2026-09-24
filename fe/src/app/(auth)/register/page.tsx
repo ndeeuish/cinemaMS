@@ -6,6 +6,7 @@ import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined
 import { authService } from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getErrorMessage } from '@/utils/error.util';
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -18,8 +19,7 @@ export default function RegisterPage() {
       message.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
       router.push('/login');
     } catch (error: any) {
-      const errorMsg = error.response?.data?.details || error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký';
-      message.error(errorMsg);
+      message.error(getErrorMessage(error, 'Có lỗi xảy ra khi đăng ký'));
     } finally {
       setLoading(false);
     }

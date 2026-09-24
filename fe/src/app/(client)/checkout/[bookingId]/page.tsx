@@ -8,6 +8,7 @@ import { BookingResponseDto } from '@/types/client.type';
 import { useBookingStore } from '@/stores/booking.store';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import { getErrorMessage } from '@/utils/error.util';
 
 dayjs.extend(duration);
 
@@ -56,7 +57,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
       const res = await clientService.createPaymentUrl(bookingId);
       window.location.href = res.url;
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'Không thể tạo phiên thanh toán!';
+      const errorMsg = getErrorMessage(error, 'Không thể tạo phiên thanh toán!');
       message.error(errorMsg);
       setLoading(false);
     }

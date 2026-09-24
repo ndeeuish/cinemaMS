@@ -160,7 +160,7 @@ export default function AdminMoviesPage() {
       setIsModalVisible(false);
       fetchMovies();
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Có lỗi xảy ra');
+      message.error(getErrorMessage(error, 'Có lỗi xảy ra'));
     }
   };
 

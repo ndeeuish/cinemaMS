@@ -113,7 +113,7 @@ export default function AdminShowtimesPage() {
       setIsModalVisible(false);
       if (selectedCinema) fetchShowtimesAndRooms(selectedCinema);
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Có lỗi xảy ra');
+      message.error(getErrorMessage(error, 'Có lỗi xảy ra'));
     }
   };
 
@@ -123,7 +123,7 @@ export default function AdminShowtimesPage() {
       message.success('Xóa lịch chiếu thành công');
       if (selectedCinema) fetchShowtimesAndRooms(selectedCinema);
     } catch (error: any) {
-      message.error(error.response?.data?.details || 'Không thể xóa lịch chiếu này');
+      message.error(getErrorMessage(error, 'Không thể xóa lịch chiếu này'));
     }
   };
 

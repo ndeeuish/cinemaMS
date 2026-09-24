@@ -6,12 +6,23 @@ import { Card, Button, Result, Spin, Typography } from 'antd';
 
 const { Text } = Typography;
 
+import { useEffect } from 'react';
+import { useBookingStore } from '@/stores/booking.store';
+
 function CheckoutResultContent() {
   const searchParams = useSearchParams();
   const status = searchParams.get('status');
   const bookingId = searchParams.get('bookingId');
   const txnId = searchParams.get('txnId');
   const message = searchParams.get('message');
+  
+  const { clearBooking } = useBookingStore();
+
+  useEffect(() => {
+    if (status === 'success') {
+      clearBooking();
+    }
+  }, [status, clearBooking]);
 
   if (status === 'success') {
     return (

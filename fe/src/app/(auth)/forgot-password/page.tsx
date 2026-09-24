@@ -5,6 +5,7 @@ import { Form, Input, Button, Card, message } from 'antd';
 import { MailOutlined, LockOutlined, KeyOutlined } from '@ant-design/icons';
 import { authService } from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
+import { getErrorMessage } from '@/utils/error.util';
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
@@ -38,8 +39,7 @@ export default function ForgotPasswordPage() {
       setCountdown(60);
       message.success('Mã OTP đã được gửi đến email của bạn.');
     } catch (error: any) {
-      const errorMsg = error.response?.data?.details || error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
-      message.error(errorMsg);
+      message.error(getErrorMessage(error, 'Có lỗi xảy ra, vui lòng thử lại.'));
     } finally {
       setLoading(false);
     }
@@ -56,8 +56,7 @@ export default function ForgotPasswordPage() {
       message.success('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
       router.push('/login');
     } catch (error: any) {
-      const errorMsg = error.response?.data?.details || error.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn.';
-      message.error(errorMsg);
+      message.error(getErrorMessage(error, 'Mã OTP không hợp lệ hoặc đã hết hạn.'));
     } finally {
       setLoading(false);
     }
@@ -72,8 +71,7 @@ export default function ForgotPasswordPage() {
       setCountdown(60);
       message.success('Mã OTP đã được gửi lại.');
     } catch (error: any) {
-      const errorMsg = error.response?.data?.details || error.response?.data?.message || 'Vui lòng chờ 60s trước khi gửi lại yêu cầu.';
-      message.error(errorMsg);
+      message.error(getErrorMessage(error, 'Vui lòng chờ 60s trước khi gửi lại yêu cầu.'));
     } finally {
       setLoading(false);
     }

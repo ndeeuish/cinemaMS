@@ -8,6 +8,7 @@ import { useBookingStore } from '@/stores/booking.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
+import { getErrorMessage } from '@/utils/error.util';
 
 export default function BookingPage({ params }: { params: Promise<{ showtimeId: string }> }) {
   const resolvedParams = use(params);
@@ -100,7 +101,7 @@ export default function BookingPage({ params }: { params: Promise<{ showtimeId: 
       message.success('Giữ ghế thành công! Đang chuyển đến thanh toán...');
       router.push(`/checkout/${booking.id}`);
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'Ghế đã bị đặt hoặc xảy ra lỗi!';
+      const errorMsg = getErrorMessage(error, 'Ghế đã bị đặt hoặc xảy ra lỗi!');
       message.error(errorMsg);
       // Refresh reserved seats to reflect the conflict
       fetchReservedSeats();

@@ -6,6 +6,8 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { getErrorMessage } from '@/utils/error.util';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -31,9 +33,8 @@ export default function LoginPage() {
       } else {
         router.push('/');
       }
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.details || error.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác';
-      message.error(errorMsg);
+    } catch (err: any) {
+      message.error(getErrorMessage(err, 'Đăng nhập thất bại!'));
     } finally {
       setLoading(false);
     }

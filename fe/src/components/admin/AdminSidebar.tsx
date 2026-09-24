@@ -7,6 +7,7 @@ import {
   CalendarOutlined,
   EnvironmentOutlined,
   UserOutlined,
+  NotificationOutlined,
 } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -25,6 +26,7 @@ export default function AdminSidebar() {
     { key: '/admin/movies', icon: <VideoCameraOutlined />, label: 'Quản lý Phim' },
     { key: '/admin/showtimes', icon: <CalendarOutlined />, label: 'Lịch chiếu' },
     { key: '/admin/bookings', icon: <CalendarOutlined />, label: 'Đặt vé' },
+    { key: '/admin/articles', icon: <NotificationOutlined />, label: 'Tin tức & Sự kiện' },
     ...(isAdmin ? [{ key: '/admin/cinemas', icon: <EnvironmentOutlined />, label: 'Cụm Rạp' }] : []),
     ...(isAdmin ? [{ key: '/admin/users', icon: <UserOutlined />, label: 'Người dùng' }] : []),
   ];

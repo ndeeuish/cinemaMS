@@ -14,12 +14,14 @@ public interface IApplicationDbContext
 
     #endregion
 
+
     #region Movie
     DbSet<CinemaMS.Domain.Entities.Cinemas.Cinema> Cinemas { get; }
     DbSet<CinemaMS.Domain.Entities.Catalog.Movie> Movies { get; }
     DbSet<CinemaMS.Domain.Entities.Catalog.AgeRestriction> AgeRestrictions { get; }
     DbSet<CinemaMS.Domain.Entities.Catalog.Genre> Genres { get; }
     DbSet<CinemaMS.Domain.Entities.Catalog.MovieGenre> MovieGenres { get; }
+    DbSet<CinemaMS.Domain.Entities.Catalog.Article> Articles { get; }
 
     #endregion
 
