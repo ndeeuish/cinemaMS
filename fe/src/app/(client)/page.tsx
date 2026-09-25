@@ -11,21 +11,11 @@ import dayjs from 'dayjs';
 const { Meta } = Card;
 const { Title, Paragraph } = Typography;
 
-const promotionalBanners = [
-  'https://placehold.co/1200x400/8B0000/FFFFFF?text=CINEMAMS+SUMMER+BLOCKBUSTER',
-  'https://placehold.co/1200x400/00008B/FFFFFF?text=GIFT+VOUCHER+20%25+OFF',
-  'https://placehold.co/1200x400/006400/FFFFFF?text=NEW+IMAX+EXPERIENCE'
-];
-
-
 
 export default function HomePage() {
   const [movies, setMovies] = useState<MovieDto[]>([]);
   const [articles, setArticles] = useState<ArticleDto[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const nowShowingMovies = movies.filter(m => dayjs(m.releaseDate).isBefore(dayjs().add(1, 'day')));
-  const comingSoonMovies = movies.filter(m => dayjs(m.releaseDate).isAfter(dayjs()));
 
   useEffect(() => {
     fetchMovies();
@@ -114,18 +104,39 @@ export default function HomePage() {
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Banner Area */}
       <div className="relative bg-black">
-        <Carousel autoplay effect="fade" dots={{ className: 'custom-dots' }} autoplaySpeed={4000}>
-          {promotionalBanners.map((url, idx) => (
-            <div key={idx}>
-              <div 
-                className="h-[400px] md:h-[500px] w-full bg-cover bg-center relative"
-                style={{ backgroundImage: `url(${url})` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+        {articles.length > 0 ? (
+          <Carousel autoplay effect="fade" dots={{ className: 'custom-dots' }} autoplaySpeed={4000}>
+            {articles.slice(0, 4).map((article) => (
+              <div key={article.id}>
+                <Link href={`/articles/${article.id}`}>
+                  <div 
+                    className="h-[400px] md:h-[500px] w-full bg-cover bg-center relative cursor-pointer group"
+                    style={{ 
+                      backgroundImage: `url(${article.imageUrl ? (article.imageUrl.startsWith('http') ? article.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://localhost:7212'}${article.imageUrl}`) : 'https://placehold.co/1200x500/1a1a1a/FFFFFF?text=No+Image'})` 
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+                    <div className="absolute bottom-10 left-10 md:bottom-16 md:left-16 max-w-2xl">
+                      <div className="bg-red-600 text-white text-xs font-bold px-3 py-1 inline-block mb-3 rounded">
+                        {article.type === 1 ? 'SỰ KIỆN' : 'TIN TỨC'}
+                      </div>
+                      <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight drop-shadow-md">
+                        {article.title}
+                      </h2>
+                      <p className="text-gray-300 line-clamp-2 md:text-lg hidden md:block drop-shadow-md">
+                        {article.summary}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
               </div>
-            </div>
-          ))}
-        </Carousel>
+            ))}
+          </Carousel>
+        ) : (
+          <div className="h-[400px] md:h-[500px] w-full bg-gray-900 flex items-center justify-center">
+            <Spin size="large" />
+          </div>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -139,10 +150,10 @@ export default function HomePage() {
 
           {loading ? (
             <div className="flex justify-center py-20"><Spin size="large" /></div>
-          ) : nowShowingMovies.length > 0 ? (
+          ) : movies.length > 0 ? (
             <div className="movie-carousel-wrapper">
               <Carousel {...carouselSettings4} className="pb-8">
-                {nowShowingMovies.map(movie => (
+                {movies.map(movie => (
                   <div key={movie.id} className="px-3 pb-4">
                     <Link href={`/movies/${movie.id}`}>
                       <Card
@@ -198,47 +209,28 @@ export default function HomePage() {
             <h2 className="text-3xl font-extrabold text-gray-900 border-l-4 border-blue-600 pl-4 uppercase tracking-tight">Phim Sắp Chiếu</h2>
           </div>
           
-          {loading ? (
-            <div className="flex justify-center py-20"><Spin size="large" /></div>
-          ) : comingSoonMovies.length > 0 ? (
-            <div className="movie-carousel-wrapper">
-              <Carousel {...carouselSettings5} className="pb-8">
-                {comingSoonMovies.map(movie => (
-                  <div key={movie.id} className="px-2 pb-4">
-                    <Link href={`/movies/${movie.id}`}>
-                      <Card 
-                        hoverable 
-                        className="h-full overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow rounded-xl bg-white"
-                        cover={
-                          <div className="relative pt-[150%] overflow-hidden">
-                            <img 
-                              alt={movie.title} 
-                              src={movie.posterUrl ? (movie.posterUrl.startsWith('http') ? movie.posterUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://localhost:7212'}${movie.posterUrl}`) : 'https://placehold.co/300x450/EAEAEA/000000.png?text=No+Poster'}
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = 'https://placehold.co/300x450/EAEAEA/000000.png?text=No+Poster';
-                              }}
-                              className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
-                            />
-                          </div>
-                        }
-                        styles={{ body: { padding: '16px' } }}
-                      >
-                        <h3 className="text-sm font-bold text-gray-900 leading-tight hover:text-blue-600 transition-colors line-clamp-2 text-center">
-                          {movie.title}
-                        </h3>
-                        <p className="text-xs text-gray-500 text-center mt-2">Khởi chiếu: {dayjs(movie.releaseDate).format('DD/MM/YYYY')}</p>
-                      </Card>
-                    </Link>
-                  </div>
-                ))}
-              </Carousel>
-            </div>
-          ) : (
-            <div className="w-full text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-lg">Hiện tại không có phim nào sắp ra mắt.</p>
-            </div>
-          )}
+          <div className="movie-carousel-wrapper">
+            <Carousel {...carouselSettings5} className="pb-8">
+              {comingSoonMovies.map(movie => (
+                <div key={movie.id} className="px-2 pb-4">
+                  <Card 
+                    hoverable 
+                    className="h-full overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow rounded-xl bg-white"
+                    cover={
+                      <div className="relative pt-[150%] overflow-hidden">
+                        <img alt={movie.title} src={movie.posterUrl} className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+                      </div>
+                    }
+                    styles={{ body: { padding: '16px' } }}
+                  >
+                    <h3 className="text-sm font-bold text-gray-900 leading-tight hover:text-blue-600 transition-colors line-clamp-2 text-center">
+                      {movie.title}
+                    </h3>
+                  </Card>
+                </div>
+              ))}
+            </Carousel>
+          </div>
         </section>
 
         {/* Events & News Section */}
