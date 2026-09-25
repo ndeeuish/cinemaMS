@@ -15,12 +15,14 @@ public class PaymentsController : ControllerBase
     private readonly IVnPayService _vnPayService;
     private readonly IMediator _mediator;
     private readonly IBookingRepository _bookingRepository;
+    private readonly IConfiguration _configuration;
 
-    public PaymentsController(IVnPayService vnPayService, IMediator mediator, IBookingRepository bookingRepository)
+    public PaymentsController(IVnPayService vnPayService, IMediator mediator, IBookingRepository bookingRepository, IConfiguration configuration)
     {
         _vnPayService = vnPayService;
         _mediator = mediator;
         _bookingRepository = bookingRepository;
+        _configuration = configuration;
     }
 
     [HttpPost("create-url")]
@@ -53,8 +55,8 @@ public class PaymentsController : ControllerBase
     {
         var response = _vnPayService.PaymentExecute(Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString()));
 
-        // In production, get Frontend URL from config
-        string frontendUrl = "http://localhost:3000/checkout/result";
+        string frontendBaseUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
+        string frontendUrl = $"{frontendBaseUrl.TrimEnd('/')}/checkout/result";
         
         if (response.Success)
         {
