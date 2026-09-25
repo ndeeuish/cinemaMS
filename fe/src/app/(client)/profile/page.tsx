@@ -14,7 +14,7 @@ const { Title } = Typography;
 export default function ProfilePage() {
   const [bookings, setBookings] = useState<BookingResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, fullName, username, role } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -22,22 +22,23 @@ export default function ProfilePage() {
       router.push('/login');
       return;
     }
+
+    const fetchMyBookings = async () => {
+      try {
+        setLoading(true);
+        const data = await clientService.getMyBookings();
+        // Sort by newest first
+        data.sort((a, b) => b.id - a.id);
+        setBookings(data);
+      } catch (error) {
+        message.error(getErrorMessage(error, 'Không thể tải lịch sử đặt vé'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchMyBookings();
   }, [isAuthenticated, router]);
-
-  const fetchMyBookings = async () => {
-    try {
-      setLoading(true);
-      const data = await clientService.getMyBookings();
-      // Sort by newest first
-      data.sort((a, b) => b.id - a.id);
-      setBookings(data);
-    } catch (error) {
-      message.error(getErrorMessage(error, 'Không thể tải lịch sử đặt vé'));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const columns = [
     {
@@ -130,9 +131,9 @@ export default function ProfilePage() {
         <Card className="mb-6 shadow-sm rounded-xl">
           <Title level={4}>Thông tin tài khoản</Title>
           <div className="mt-4">
-            <p><strong>Họ tên:</strong> {user?.fullName}</p>
-            <p><strong>Email:</strong> {user?.email}</p>
-            <p><strong>Vai trò:</strong> {user?.role}</p>
+            <p><strong>Họ tên:</strong> {fullName}</p>
+            <p><strong>Tài khoản:</strong> {username}</p>
+            <p><strong>Vai trò:</strong> {role}</p>
           </div>
         </Card>
 
