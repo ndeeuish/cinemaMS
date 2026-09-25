@@ -11,19 +11,6 @@ import dayjs from 'dayjs';
 const { Meta } = Card;
 const { Title, Paragraph } = Typography;
 
-const promotionalBanners = [
-  'https://placehold.co/1200x400/8B0000/FFFFFF?text=CINEMAMS+SUMMER+BLOCKBUSTER',
-  'https://placehold.co/1200x400/00008B/FFFFFF?text=GIFT+VOUCHER+20%25+OFF',
-  'https://placehold.co/1200x400/006400/FFFFFF?text=NEW+IMAX+EXPERIENCE'
-];
-
-const comingSoonMovies = [
-  { id: 201, title: 'Deadpool & Wolverine', posterUrl: 'https://placehold.co/300x450/444/FFF.png?text=Coming+Soon+1', durationInMinutes: 127, releaseDate: '2026-07-26', ageRestrictionName: 'C18' },
-  { id: 202, title: 'Inside Out 2', posterUrl: 'https://placehold.co/300x450/555/FFF.png?text=Coming+Soon+2', durationInMinutes: 96, releaseDate: '2026-06-14', ageRestrictionName: 'P' },
-  { id: 203, title: 'Despicable Me 4', posterUrl: 'https://placehold.co/300x450/666/FFF.png?text=Coming+Soon+3', durationInMinutes: 95, releaseDate: '2026-07-03', ageRestrictionName: 'P' },
-  { id: 204, title: 'A Quiet Place: Day One', posterUrl: 'https://placehold.co/300x450/777/FFF.png?text=Coming+Soon+4', durationInMinutes: 100, releaseDate: '2026-06-28', ageRestrictionName: 'C16' },
-  { id: 205, title: 'Twisters', posterUrl: 'https://placehold.co/300x450/888/FFF.png?text=Coming+Soon+5', durationInMinutes: 117, releaseDate: '2026-07-19', ageRestrictionName: 'C13' },
-];
 
 export default function HomePage() {
   const [movies, setMovies] = useState<MovieDto[]>([]);
@@ -117,18 +104,39 @@ export default function HomePage() {
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Banner Area */}
       <div className="relative bg-black">
-        <Carousel autoplay effect="fade" dots={{ className: 'custom-dots' }} autoplaySpeed={4000}>
-          {promotionalBanners.map((url, idx) => (
-            <div key={idx}>
-              <div 
-                className="h-[400px] md:h-[500px] w-full bg-cover bg-center relative"
-                style={{ backgroundImage: `url(${url})` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+        {articles.length > 0 ? (
+          <Carousel autoplay effect="fade" dots={{ className: 'custom-dots' }} autoplaySpeed={4000}>
+            {articles.slice(0, 4).map((article) => (
+              <div key={article.id}>
+                <Link href={`/articles/${article.id}`}>
+                  <div 
+                    className="h-[400px] md:h-[500px] w-full bg-cover bg-center relative cursor-pointer group"
+                    style={{ 
+                      backgroundImage: `url(${article.imageUrl ? (article.imageUrl.startsWith('http') ? article.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://localhost:7212'}${article.imageUrl}`) : 'https://placehold.co/1200x500/1a1a1a/FFFFFF?text=No+Image'})` 
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+                    <div className="absolute bottom-10 left-10 md:bottom-16 md:left-16 max-w-2xl">
+                      <div className="bg-red-600 text-white text-xs font-bold px-3 py-1 inline-block mb-3 rounded">
+                        {article.type === 1 ? 'SỰ KIỆN' : 'TIN TỨC'}
+                      </div>
+                      <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight drop-shadow-md">
+                        {article.title}
+                      </h2>
+                      <p className="text-gray-300 line-clamp-2 md:text-lg hidden md:block drop-shadow-md">
+                        {article.summary}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
               </div>
-            </div>
-          ))}
-        </Carousel>
+            ))}
+          </Carousel>
+        ) : (
+          <div className="h-[400px] md:h-[500px] w-full bg-gray-900 flex items-center justify-center">
+            <Spin size="large" />
+          </div>
+        )}
       </div>
 
       {/* Main Content Area */}
