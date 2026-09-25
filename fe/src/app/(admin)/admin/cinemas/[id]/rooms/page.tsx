@@ -6,6 +6,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, LayoutOutlined, ArrowLeftOu
 import { adminService } from '@/services/admin.service';
 import { RoomDto } from '@/types/admin.type';
 import { useRouter } from 'next/navigation';
+import { getErrorMessage } from '@/utils/error.util';
 
 export default function AdminRoomsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
