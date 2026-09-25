@@ -17,18 +17,15 @@ const promotionalBanners = [
   'https://placehold.co/1200x400/006400/FFFFFF?text=NEW+IMAX+EXPERIENCE'
 ];
 
-const comingSoonMovies = [
-  { id: 201, title: 'Deadpool & Wolverine', posterUrl: 'https://placehold.co/300x450/444/FFF.png?text=Coming+Soon+1', durationInMinutes: 127, releaseDate: '2026-07-26', ageRestrictionName: 'C18' },
-  { id: 202, title: 'Inside Out 2', posterUrl: 'https://placehold.co/300x450/555/FFF.png?text=Coming+Soon+2', durationInMinutes: 96, releaseDate: '2026-06-14', ageRestrictionName: 'P' },
-  { id: 203, title: 'Despicable Me 4', posterUrl: 'https://placehold.co/300x450/666/FFF.png?text=Coming+Soon+3', durationInMinutes: 95, releaseDate: '2026-07-03', ageRestrictionName: 'P' },
-  { id: 204, title: 'A Quiet Place: Day One', posterUrl: 'https://placehold.co/300x450/777/FFF.png?text=Coming+Soon+4', durationInMinutes: 100, releaseDate: '2026-06-28', ageRestrictionName: 'C16' },
-  { id: 205, title: 'Twisters', posterUrl: 'https://placehold.co/300x450/888/FFF.png?text=Coming+Soon+5', durationInMinutes: 117, releaseDate: '2026-07-19', ageRestrictionName: 'C13' },
-];
+
 
 export default function HomePage() {
   const [movies, setMovies] = useState<MovieDto[]>([]);
   const [articles, setArticles] = useState<ArticleDto[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const nowShowingMovies = movies.filter(m => dayjs(m.releaseDate).isBefore(dayjs().add(1, 'day')));
+  const comingSoonMovies = movies.filter(m => dayjs(m.releaseDate).isAfter(dayjs()));
 
   useEffect(() => {
     fetchMovies();
@@ -142,10 +139,10 @@ export default function HomePage() {
 
           {loading ? (
             <div className="flex justify-center py-20"><Spin size="large" /></div>
-          ) : movies.length > 0 ? (
+          ) : nowShowingMovies.length > 0 ? (
             <div className="movie-carousel-wrapper">
               <Carousel {...carouselSettings4} className="pb-8">
-                {movies.map(movie => (
+                {nowShowingMovies.map(movie => (
                   <div key={movie.id} className="px-3 pb-4">
                     <Link href={`/movies/${movie.id}`}>
                       <Card
@@ -201,28 +198,47 @@ export default function HomePage() {
             <h2 className="text-3xl font-extrabold text-gray-900 border-l-4 border-blue-600 pl-4 uppercase tracking-tight">Phim Sắp Chiếu</h2>
           </div>
           
-          <div className="movie-carousel-wrapper">
-            <Carousel {...carouselSettings5} className="pb-8">
-              {comingSoonMovies.map(movie => (
-                <div key={movie.id} className="px-2 pb-4">
-                  <Card 
-                    hoverable 
-                    className="h-full overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow rounded-xl bg-white"
-                    cover={
-                      <div className="relative pt-[150%] overflow-hidden">
-                        <img alt={movie.title} src={movie.posterUrl} className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
-                      </div>
-                    }
-                    styles={{ body: { padding: '16px' } }}
-                  >
-                    <h3 className="text-sm font-bold text-gray-900 leading-tight hover:text-blue-600 transition-colors line-clamp-2 text-center">
-                      {movie.title}
-                    </h3>
-                  </Card>
-                </div>
-              ))}
-            </Carousel>
-          </div>
+          {loading ? (
+            <div className="flex justify-center py-20"><Spin size="large" /></div>
+          ) : comingSoonMovies.length > 0 ? (
+            <div className="movie-carousel-wrapper">
+              <Carousel {...carouselSettings5} className="pb-8">
+                {comingSoonMovies.map(movie => (
+                  <div key={movie.id} className="px-2 pb-4">
+                    <Link href={`/movies/${movie.id}`}>
+                      <Card 
+                        hoverable 
+                        className="h-full overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow rounded-xl bg-white"
+                        cover={
+                          <div className="relative pt-[150%] overflow-hidden">
+                            <img 
+                              alt={movie.title} 
+                              src={movie.posterUrl ? (movie.posterUrl.startsWith('http') ? movie.posterUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://localhost:7212'}${movie.posterUrl}`) : 'https://placehold.co/300x450/EAEAEA/000000.png?text=No+Poster'}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = 'https://placehold.co/300x450/EAEAEA/000000.png?text=No+Poster';
+                              }}
+                              className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                            />
+                          </div>
+                        }
+                        styles={{ body: { padding: '16px' } }}
+                      >
+                        <h3 className="text-sm font-bold text-gray-900 leading-tight hover:text-blue-600 transition-colors line-clamp-2 text-center">
+                          {movie.title}
+                        </h3>
+                        <p className="text-xs text-gray-500 text-center mt-2">Khởi chiếu: {dayjs(movie.releaseDate).format('DD/MM/YYYY')}</p>
+                      </Card>
+                    </Link>
+                  </div>
+                ))}
+              </Carousel>
+            </div>
+          ) : (
+            <div className="w-full text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
+              <p className="text-gray-500 text-lg">Hiện tại không có phim nào sắp ra mắt.</p>
+            </div>
+          )}
         </section>
 
         {/* Events & News Section */}

@@ -61,13 +61,13 @@ public class ShowtimeRepository : RepositoryBase<Showtime, int>, IShowtimeReposi
 
     public async Task<IEnumerable<Showtime>> GetByMovieIdAsync(int movieId, CancellationToken cancellationToken = default)
     {
-        var today = DateTime.Now.Date;
+        var nowUtc = DateTime.UtcNow;
         
         return await DbContext.Set<Showtime>()
             .AsNoTracking()
             .Include(s => s.Room)
                 .ThenInclude(r => r.Cinema)
-            .Where(s => s.MovieId == movieId && s.StartTime >= today)
+            .Where(s => s.MovieId == movieId && s.StartTime >= nowUtc)
             .OrderBy(s => s.StartTime)
             .ToListAsync(cancellationToken);
     }
