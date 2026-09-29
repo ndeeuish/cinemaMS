@@ -12,11 +12,39 @@ const { Meta } = Card;
 const { Title, Paragraph } = Typography;
 
 
+const CustomPrevArrow = (props: any) => {
+  const { onClick } = props;
+  return (
+    <button
+      onClick={onClick}
+      className="absolute top-[35%] -left-12 -translate-y-1/2 z-10 text-gray-400 hover:text-red-500 transition-all duration-300 hover:scale-110 focus:outline-none cursor-pointer opacity-60 hover:opacity-100"
+      style={{ border: 'none', background: 'transparent' }}
+    >
+      <LeftCircleOutlined style={{ fontSize: '44px', filter: 'drop-shadow(1px 1px 2px rgba(255,255,255,0.6))' }} />
+    </button>
+  );
+};
+
+const CustomNextArrow = (props: any) => {
+  const { onClick } = props;
+  return (
+    <button
+      onClick={onClick}
+      className="absolute top-[35%] -right-12 -translate-y-1/2 z-10 text-gray-400 hover:text-red-500 transition-all duration-300 hover:scale-110 focus:outline-none cursor-pointer opacity-60 hover:opacity-100"
+      style={{ border: 'none', background: 'transparent' }}
+    >
+      <RightCircleOutlined style={{ fontSize: '44px', filter: 'drop-shadow(1px 1px 2px rgba(255,255,255,0.6))' }} />
+    </button>
+  );
+};
+
 export default function HomePage() {
   const [movies, setMovies] = useState<MovieDto[]>([]);
   const [articles, setArticles] = useState<ArticleDto[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const nowShowingMovies = movies.filter(m => !dayjs(m.releaseDate).isAfter(dayjs(), 'day'));
+  const comingSoonMovies = movies.filter(m => dayjs(m.releaseDate).isAfter(dayjs(), 'day'));
   useEffect(() => {
     fetchMovies();
     fetchArticles();
@@ -42,31 +70,10 @@ export default function HomePage() {
     }
   };
 
-  const CustomPrevArrow = (props: any) => {
-    const { onClick } = props;
-    return (
-      <button
-        onClick={onClick}
-        className="absolute top-[35%] -left-12 -translate-y-1/2 z-10 text-gray-400 hover:text-red-500 transition-all duration-300 hover:scale-110 focus:outline-none cursor-pointer opacity-60 hover:opacity-100"
-        style={{ border: 'none', background: 'transparent' }}
-      >
-        <LeftCircleOutlined style={{ fontSize: '44px', filter: 'drop-shadow(1px 1px 2px rgba(255,255,255,0.6))' }} />
-      </button>
-    );
-  };
-
-  const CustomNextArrow = (props: any) => {
-    const { onClick } = props;
-    return (
-      <button
-        onClick={onClick}
-        className="absolute top-[35%] -right-12 -translate-y-1/2 z-10 text-gray-400 hover:text-red-500 transition-all duration-300 hover:scale-110 focus:outline-none cursor-pointer opacity-60 hover:opacity-100"
-        style={{ border: 'none', background: 'transparent' }}
-      >
-        <RightCircleOutlined style={{ fontSize: '44px', filter: 'drop-shadow(1px 1px 2px rgba(255,255,255,0.6))' }} />
-      </button>
-    );
-  };
+  useEffect(() => {
+    fetchMovies();
+    fetchArticles();
+  }, []);
 
   const carouselSettings4 = {
     dots: true,
@@ -150,10 +157,10 @@ export default function HomePage() {
 
           {loading ? (
             <div className="flex justify-center py-20"><Spin size="large" /></div>
-          ) : movies.length > 0 ? (
+          ) : nowShowingMovies.length > 0 ? (
             <div className="movie-carousel-wrapper">
               <Carousel {...carouselSettings4} className="pb-8">
-                {movies.map(movie => (
+                {nowShowingMovies.map(movie => (
                   <div key={movie.id} className="px-3 pb-4">
                     <Link href={`/movies/${movie.id}`}>
                       <Card
@@ -209,21 +216,32 @@ export default function HomePage() {
             <h2 className="text-3xl font-extrabold text-gray-900 border-l-4 border-blue-600 pl-4 uppercase tracking-tight">Phim Sắp Chiếu</h2>
           </div>
           
-          <div className="movie-carousel-wrapper">
-            <Carousel {...carouselSettings5} className="pb-8">
-              {comingSoonMovies.map(movie => (
+          {loading ? (
+            <div className="flex justify-center py-20"><Spin size="large" /></div>
+          ) : comingSoonMovies.length > 0 ? (
+            <div className="movie-carousel-wrapper">
+              <Carousel {...carouselSettings5} className="pb-8">
+                {comingSoonMovies.map(movie => (
                 <div key={movie.id} className="px-2 pb-4">
                   <Card 
                     hoverable 
                     className="h-full overflow-hidden border-0 shadow-sm hover:shadow-lg transition-shadow rounded-xl bg-white"
                     cover={
                       <div className="relative pt-[150%] overflow-hidden">
-                        <img alt={movie.title} src={movie.posterUrl} className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+                        <img 
+                          alt={movie.title} 
+                          src={movie.posterUrl ? (movie.posterUrl.startsWith('http') ? movie.posterUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://localhost:7212'}${movie.posterUrl}`) : 'https://placehold.co/300x450/EAEAEA/000000.png?text=No+Poster'}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://placehold.co/300x450/EAEAEA/000000.png?text=No+Poster';
+                          }}
+                          className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                        />
                       </div>
                     }
                     styles={{ body: { padding: '16px' } }}
                   >
-                    <h3 className="text-sm font-bold text-gray-900 leading-tight hover:text-blue-600 transition-colors line-clamp-2 text-center">
+                    <h3 className="text-sm font-bold text-gray-900 leading-tight hover:text-blue-600 transition-colors truncate block text-center">
                       {movie.title}
                     </h3>
                   </Card>
@@ -231,6 +249,11 @@ export default function HomePage() {
               ))}
             </Carousel>
           </div>
+          ) : (
+            <div className="w-full text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
+              <p className="text-gray-500 text-lg">Hiện tại không có phim nào sắp chiếu.</p>
+            </div>
+          )}
         </section>
 
         {/* Events & News Section */}

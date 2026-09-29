@@ -10,11 +10,13 @@ public class UpdateMovieCommandHandler : CommandHandlerBase<UpdateMovieCommand, 
 {
     private readonly IMovieRepository _movieRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly CinemaMS.Application.Interfaces.Caching.IRedisCacheService _cacheService;
 
-    public UpdateMovieCommandHandler(IMovieRepository movieRepository, IUnitOfWork unitOfWork)
+    public UpdateMovieCommandHandler(IMovieRepository movieRepository, IUnitOfWork unitOfWork, CinemaMS.Application.Interfaces.Caching.IRedisCacheService cacheService)
     {
         _movieRepository = movieRepository;
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public override async Task<MovieDto> Handle(UpdateMovieCommand request, CancellationToken cancellationToken)
@@ -45,6 +47,8 @@ public class UpdateMovieCommandHandler : CommandHandlerBase<UpdateMovieCommand, 
 
         _movieRepository.Update(movie);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _cacheService.RemoveAsync("Movies_1_10_all_all", cancellationToken);
 
         var updatedMovie = await _movieRepository.GetByIdWithDetailsAsync(movie.Id, cancellationToken);
         return MovieDto.FromEntity(updatedMovie!);
