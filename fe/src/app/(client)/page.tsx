@@ -45,6 +45,10 @@ export default function HomePage() {
 
   const nowShowingMovies = movies.filter(m => !dayjs(m.releaseDate).isAfter(dayjs(), 'day'));
   const comingSoonMovies = movies.filter(m => dayjs(m.releaseDate).isAfter(dayjs(), 'day'));
+  useEffect(() => {
+    fetchMovies();
+    fetchArticles();
+  }, []);
 
   const fetchMovies = async () => {
     try {
