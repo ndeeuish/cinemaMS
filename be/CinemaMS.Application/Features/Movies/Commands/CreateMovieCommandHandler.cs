@@ -9,11 +9,13 @@ public class CreateMovieCommandHandler : CommandHandlerBase<CreateMovieCommand, 
 {
     private readonly IMovieRepository _movieRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly CinemaMS.Application.Interfaces.Caching.IRedisCacheService _cacheService;
 
-    public CreateMovieCommandHandler(IMovieRepository movieRepository, IUnitOfWork unitOfWork)
+    public CreateMovieCommandHandler(IMovieRepository movieRepository, IUnitOfWork unitOfWork, CinemaMS.Application.Interfaces.Caching.IRedisCacheService cacheService)
     {
         _movieRepository = movieRepository;
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public override async Task<MovieDto> Handle(CreateMovieCommand request, CancellationToken cancellationToken)
@@ -41,6 +43,8 @@ public class CreateMovieCommandHandler : CommandHandlerBase<CreateMovieCommand, 
 
         _movieRepository.Add(movie);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _cacheService.RemoveAsync("Movies_1_10_all_all", cancellationToken);
 
         // Fetch back with details included to map correct DTO
         var createdMovie = await _movieRepository.GetByIdWithDetailsAsync(movie.Id, cancellationToken);
