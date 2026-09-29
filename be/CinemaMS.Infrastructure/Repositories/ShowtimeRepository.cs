@@ -61,7 +61,7 @@ public class ShowtimeRepository : RepositoryBase<Showtime, int>, IShowtimeReposi
 
     public async Task<IEnumerable<Showtime>> GetByMovieIdAsync(int movieId, CancellationToken cancellationToken = default)
     {
-        var today = DateTime.Now.Date;
+        var today = DateTime.UtcNow.Date;
         
         return await DbContext.Set<Showtime>()
             .AsNoTracking()
